@@ -8,6 +8,8 @@ const Dashboard = async() =>{
   const session = await auth.api.getSession({
     headers:await headers()
   })
+   console.log("DASHBOARD PAGE - session exists:", !!session)
+
 
   if(!session){
     console.log("not session available")
