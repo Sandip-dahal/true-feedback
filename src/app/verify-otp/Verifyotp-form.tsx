@@ -40,7 +40,7 @@ const VerifyOtpForm = ({email}:VerifuOtpFromProps) =>{
                 setError(error.message ||"Invalid or expird otp")
                 return
             }
-            router.push("/dashboard")
+            router.push("/signin")
             router.refresh()
             
         } catch (error) {

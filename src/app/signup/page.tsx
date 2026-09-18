@@ -3,9 +3,11 @@
 import { useForm} from "react-hook-form"
 import { authClient } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
+import { set } from "zod"
 
 type SignUpFormData = {
     name:string,
+    username: string,
     email: string,
     password: string,
 }
@@ -28,10 +30,32 @@ const  SignupForm = () =>{
 
 const submitForm = async(data:SignUpFormData) =>{
     clearErrors()
-    const { name,email,password} = data
+    const { name,username, email,password} = data
+    try {
+        const response = await fetch(`/api/Check-username-unique?username=${encodeURIComponent(username)}`)
 
+        const usernameResult = await response.json()
+
+        if(!response.ok){
+            setError("username",{
+                type:"server",
+                message: usernameResult.message ||"Unable to check username"
+            })
+            return
+        }
+
+        if(!usernameResult.success){
+            setError("username",{
+                type:"validate",
+                message: usernameResult.message ||"username is alreay taken"
+            })
+            return
+        }
+
+    //username is available -> create an account....    
     const{ error} = await authClient.signUp.email({
         name:name.trim(),
+        username:username.trim(),
         email:email.trim(),
         password: password,
     })
@@ -43,16 +67,32 @@ const submitForm = async(data:SignUpFormData) =>{
         return
     }
 
-    await authClient.emailOtp.sendVerificationOtp({
-            email,
-            type:"email-verification"
-        })
-    
+    const {error:otpError} = await authClient.emailOtp.sendVerificationOtp({
+        email,
+        type:"email-verification"
+    })
 
+    if(otpError){
+        setError("root",{
+            type:"server",
+            message: otpError.message ||"Account create but we couldnt send the verification OTP"
+        })
+        return
+    }
+
+// Go to verificatio Page ..................
     router.push(`/verify-otp?email=${encodeURIComponent(email)}`)
     console.log("OTP sent successfully")
 
 
+} catch(error){
+    console.error("signUp failed:",error)
+
+    setError("root",{
+        type:"server",
+        message: "Something Went Worng. Please try Again"
+    })
+}
 }
 
 const handleGoogleSignUp = async () =>{
@@ -77,11 +117,27 @@ const handleGoogleSignUp = async () =>{
     return(
         <form onSubmit={handleSubmit(submitForm)}>
             <div>
-                <label>username</label>
+                <label>Name</label>
                 <input 
                 type="text"
                 placeholder="Enter your name"
                 {...register("name",{
+                    required:"Name is Requuired",
+                    maxLength:{
+                        value:30,
+                        message:"Name must be atMost 30 character",
+                    }
+                })}
+                />
+                {errors.name && 
+                <p>{errors.name.message}</p>
+                }
+
+                <label>username</label>
+                <input 
+                type="text"
+                placeholder="Enter your username"
+                {...register("username",{
                     required:"Username is Requuired",
                     maxLength:{
                         value:30,
@@ -89,8 +145,8 @@ const handleGoogleSignUp = async () =>{
                     }
                 })}
                 />
-                {errors.name && 
-                <p>{errors.name.message}</p>
+                {errors.username && 
+                <p>{errors.username.message}</p>
                 }
 
                 <label>Email</label>
@@ -146,6 +202,9 @@ const handleGoogleSignUp = async () =>{
                     signUp with Google
                 </button>
                 </div>
+                { errors.root && (
+                    <p>{errors.root.message}</p>
+                )}
 
             </div>
 
@@ -153,4 +212,4 @@ const handleGoogleSignUp = async () =>{
     )
 }
 
-export default SignupForm
+export default SignupForm;

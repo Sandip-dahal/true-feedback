@@ -21,6 +21,14 @@ import { sendOtpEmail } from "@/helper/sendEmail";
             clientSecret:process.env.GOOGLE_CLIENT_SECRET!,
         }
     },
+    user:{
+        additionalFields:{
+            username:{
+                type:"string",
+                required:true,
+            }
+        }
+    },
     plugins:[
         emailOTP({
             overrideDefaultEmailVerification:true,

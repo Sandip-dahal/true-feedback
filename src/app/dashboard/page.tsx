@@ -2,6 +2,10 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { Logout } from "@/component/Logout";
 import { redirect } from "next/navigation";
+import  ClientDashboard from "./ClientDashboard"
+
+
+
 
 const Dashboard = async() =>{
 
@@ -16,10 +20,15 @@ const Dashboard = async() =>{
     redirect("/signin")
   }
 
+   
+
+
   return(
     <div>
-      <h1>Welcome {session.user.name}</h1>
-      <p>{session.user.email}</p>
+      <ClientDashboard 
+      name={session.user.name}
+      email={session.user.email}
+      />
 
       <Logout />
     </div>
