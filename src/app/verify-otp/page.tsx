@@ -1,4 +1,4 @@
-import { VerifyOtpForm } from "./Verifyotp-form"
+import VerifyOtpForm  from "./Verifyotp-form"
 
 type verifyOtpPageProps = {
     searchParams:Promise<{

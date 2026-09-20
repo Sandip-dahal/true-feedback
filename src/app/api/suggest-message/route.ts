@@ -1,4 +1,4 @@
-import { openai } from "@ai-sdk/openai";
+import { groq } from "@ai-sdk/groq";
 import { generateText} from "ai"
 import { aiSuggestionSchema } from "@/schemas/AiSuggestionSchema";
 
@@ -11,7 +11,7 @@ export async function POST(request:Request) {
        const result = aiSuggestionSchema.safeParse(body)
 
        if(!result.success){
-        return Response.json(
+        return Response.json( 
             {
                 success:false,
                 message:"Invalid suggestion request",
@@ -26,7 +26,7 @@ export async function POST(request:Request) {
 //Ask Ai to generate feedback....
 
     const { text} = await generateText({
-        model:openai("gpt-4o-mini"),
+        model:groq("llama-3.3-70b-versatile"), 
         system: `
         you generate anonymous feedback message fro a social feedback application.
 

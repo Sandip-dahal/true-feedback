@@ -4,46 +4,56 @@ import { useRouter } from "next/navigation";
 
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
-
+import { useForm, Controller} from "react-hook-form"
+import {Button} from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Field, FieldLabel, FieldError} from "@/components/ui/field"
+import { CardContent} from "@/components/ui/card"
+import { Loader2 } from "lucide-react";
 
 
 
 type VerifuOtpFromProps = {
     email: string,
 }
-
-
+type verifyOtpformData = {
+    otp:string,
+}
 const VerifyOtpForm = ({email}:VerifuOtpFromProps) =>{
 
     const router = useRouter()
-    
-    const [otp,setOtp] = useState("")
+
     const [error,setError] = useState("")
     const [ isSubmitting,setIsSubmitting] = useState(false)
     const [isResending, setIsREsending] = useState(false)
 
-
-    const VerifyOtp = async() =>{
-        setError("");
-
-        if(!/^\d{6}$/.test(otp)){
-            setError("please Enter a valid 6-digit otp")
-            return
+    const form = useForm<verifyOtpformData>({
+        defaultValues:{
+            otp:""
         }
+    })
+
+
+    const onSubmit = async(data:verifyOtpformData) =>{
+        setError("");
         setIsSubmitting(true)
         try {
             const { error} = await authClient.emailOtp.verifyEmail({
                 email,
-                otp
+                otp : data.otp,
             })
             if(error){
                 setError(error.message ||"Invalid or expird otp")
                 return
             }
+
+            const currentSession = await authClient.getSession()
+            console.log("session right after OTP verify:", currentSession)
             router.push("/signin")
             router.refresh()
             
         } catch (error) {
+            console.error("OTP verification failed",error)
             setError("someThing Went Wrong.Please try again")
             
         }
@@ -51,7 +61,9 @@ const VerifyOtpForm = ({email}:VerifuOtpFromProps) =>{
             setIsSubmitting(false)
         }
 
-    };
+    }
+
+
 
     const ResendOtp = async()=>{
         setError("")
@@ -68,6 +80,7 @@ const VerifyOtpForm = ({email}:VerifuOtpFromProps) =>{
 
             }
         } catch (err) {
+            console.error("Resend OTP Failed:",err)
             setError("Something went worng while resending the otp")   
         }
         finally{
@@ -76,49 +89,100 @@ const VerifyOtpForm = ({email}:VerifuOtpFromProps) =>{
     }
     
     return(
-        <div>
-            <h1>Verify your email</h1>
+        <div
+        className="flex justify-center items-center min-h-screen bg-gray-100">
+            <div
+            className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
+                <div
+                className="text-center">
+                    <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-6">
+                        Verify Your Email
+                    </h1>
+                    <p className="mb-4">OTP is sent to {email}</p>
 
-            <p>we sent a verification code to:</p>
-            <p>{email}</p>
+                </div>
+                <CardContent>
+                    <form id="form-rhf-verifyotp" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                        <Controller
+                        name="otp"
+                        control={form.control}
+                        rules={{
+                            required:"OTP is Required",
+                            pattern:{
+                                value:/^\d{6}$/,
+                                message:"OTP must be Exactly 6 digits"
+                            }
+                        }}
+                        render={({field,fieldState}) =>(
+                            <Field data-invalid={fieldState.invalid}>
 
-            <input
-            type="text"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            placeholder="Enter 6-digit code"
-            maxLength={6}
-            value={otp}
-            onChange={(e) => {
-                const value = e.target.value
+                                <Input
+                                {...field}
+                                id={field.name}
+                                type="text"
+                                placeholder="000000"
+                                maxLength={6}
+                                inputMode="numeric"
+                                autoComplete="one-time-code"
+                                disabled={isSubmitting}
+                                aria-invalid={fieldState.invalid}
+                                />
 
-                if(/^\d*$/.test(value)){
-                    setOtp(value)
-                }
-            }}
+                                {fieldState.invalid && (
+                                    <FieldError errors ={[fieldState.error]} />
+                                )}
+                            </Field>
+                        )}
+                        />
 
-            />
-            {error && (
-                <p>{error}</p>
-            )}
+                        {error && (
+                            <p className="text-sm text-red-500">
+                                {error}
+                            </p>
+                        )}
 
-            <button 
-            type="button"
-            onClick={VerifyOtp}
-            disabled={isSubmitting || otp.length !==6}
-            >
-                {isSubmitting ? "Verifying...":"verify email"}
-            </button>
+                        
 
-            <button 
-            type="button"
-            onClick={ResendOtp}
-            disabled={isResending}
-            >
-                {isResending ? "Sending...":"Resend OTP"}
-            </button>
+                        <Button
+                        type="submit"
+                        disabled={isSubmitting || isResending|| !form.formState.isValid}
+                        >
+                            {isSubmitting ? (
+                                <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin"  />
+                                Verifying...
+                                </>
+                            ):("Verify")
+                            }
+
+                        </Button>
+
+                        <Button
+                        type="button"
+                        onClick={ResendOtp}
+                        disabled={isSubmitting || isResending}
+                        >
+                            {isResending ? (
+                                <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin"  />
+                                Resending...
+                                </>
+                            ):("Resend OTP")
+                            }
+
+                        </Button>
+                        </form>
+                </CardContent>
+
+
+
+            </div>
+        
+
         </div>
     )
 }
-export {VerifyOtpForm}
+
+export default VerifyOtpForm
+
 

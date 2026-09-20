@@ -1,7 +1,7 @@
 import {z } from "zod"
 
 export const signInValidation = z.object({
-    identifier: z
+    email: z
     .email(),
 
     password:z

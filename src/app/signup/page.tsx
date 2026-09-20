@@ -1,9 +1,19 @@
 "use client"
 
-import { useForm} from "react-hook-form"
+import { Controller, useForm, useWatch} from "react-hook-form"
 import { authClient } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
-import { set } from "zod"
+import { signUpValidation } from "@/schemas/SignUpSchema"
+import { zodResolver } from "@hookform/resolvers/zod"
+import z from "zod"
+import { useEffect, useState } from "react"
+import axios from "axios"
+import { Loader2 } from "lucide-react"
+import { CardContent } from "@/components/ui/card"
+import { Field, FieldLabel,FieldError } from "@/components/ui/field"
+import { Input } from "@base-ui/react/input"
+import { Button } from "@/components/ui/button"
+
 
 type SignUpFormData = {
     name:string,
@@ -13,92 +23,118 @@ type SignUpFormData = {
 }
 
 
+
 const  SignupForm = () =>{
 
     const router = useRouter()
+    const [ isCheckingUSername, setIsCheckingUsername] = useState(false)
+    const [ isUsernameAvailable, setIsUsernameAvailable] = useState<boolean | string>("")
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [error , setError] = useState("")
 
-   const { 
-    register,
-    handleSubmit,
-    clearErrors,
-    setError,
-    formState:{errors, isSubmitting , isSubmitSuccessful}
 
-} = useForm<SignUpFormData>({
-    mode:"onChange",
-})
+    const form = useForm<z.infer<typeof signUpValidation>>({
+        resolver: zodResolver(signUpValidation),
+        defaultValues:{
+            username:"",
+            name:"",
+            email:"",
+            password:"",
 
-const submitForm = async(data:SignUpFormData) =>{
-    clearErrors()
-    const { name,username, email,password} = data
-    try {
-        const response = await fetch(`/api/Check-username-unique?username=${encodeURIComponent(username)}`)
+        }
+    })
 
-        const usernameResult = await response.json()
+    const username = useWatch({
+        control: form.control,
+        name: "username"
+    })
 
-        if(!response.ok){
-            setError("username",{
-                type:"server",
-                message: usernameResult.message ||"Unable to check username"
-            })
+
+    useEffect(() =>{
+        const trimUsername = username?.trim()?? ""
+
+        if(!trimUsername){
+            setIsCheckingUsername(false)
+            setIsUsernameAvailable(false)
+            return
+
+        }
+
+        const controller = new AbortController()
+
+        const timer = setTimeout( async () =>{
+            try {
+                setIsCheckingUsername(true)
+
+                const response = await axios.get(`/api/Check-username-unique`,
+                    {
+                        params:{
+                            username: trimUsername
+                        },
+                        signal:controller.signal,
+                    }
+                )
+
+                setIsUsernameAvailable(response.data.success)
+                setIsCheckingUsername(response.data.message)
+            } catch (error) {
+                //request was cancelled because username changed
+                if(axios.isCancel(error)){
+                    return
+                }
+
+                console.error("USername Availability check Failed:", error)
+                setIsUsernameAvailable(false)
+                
+            }finally{
+                setIsCheckingUsername(false)
+            }
+        },400)
+
+        return() =>{
+            clearTimeout(timer)
+            controller.abort()
+        }
+
+
+    },[username]) 
+
+    const onSubmit = async(data:SignUpFormData) =>{
+
+        const { error} = await authClient.signUp.email({
+            username:data.username,
+            name : data.name,
+            email: data.email,
+            password : data.password,
+        })
+
+        if(error) {
+            setError("Unable to create Account")
+            return
+            
+        }
+
+        const { error: otpError} = await authClient.emailOtp.sendVerificationOtp({
+            email:data.email,
+            type: "email-verification"
+
+        })
+
+        if(otpError){
+            setError("Account Created but we couldnt send the verification OTP")
             return
         }
 
-        if(!usernameResult.success){
-            setError("username",{
-                type:"validate",
-                message: usernameResult.message ||"username is alreay taken"
-            })
-            return
-        }
+        //Go to verification page.... where you enter the otp
+        router.push(`/verify-otp?email=${encodeURIComponent(data.email)}`)
+        router.refresh()
 
-    //username is available -> create an account....    
-    const{ error} = await authClient.signUp.email({
-        name:name.trim(),
-        username:username.trim(),
-        email:email.trim(),
-        password: password,
-    })
-
-    if(error){
-        setError("root",{
-            message: error.message || "Unable to create acccount"
-        })
-        return
     }
-
-    const {error:otpError} = await authClient.emailOtp.sendVerificationOtp({
-        email,
-        type:"email-verification"
-    })
-
-    if(otpError){
-        setError("root",{
-            type:"server",
-            message: otpError.message ||"Account create but we couldnt send the verification OTP"
-        })
-        return
-    }
-
-// Go to verificatio Page ..................
-    router.push(`/verify-otp?email=${encodeURIComponent(email)}`)
-    console.log("OTP sent successfully")
-
-
-} catch(error){
-    console.error("signUp failed:",error)
-
-    setError("root",{
-        type:"server",
-        message: "Something Went Worng. Please try Again"
-    })
-}
-}
 
 const handleGoogleSignUp = async () =>{
     const { error} = await authClient.signIn.social({
         provider:"google",
-        callbackURL:"/dashboard"
+        callbackURL:"/signin"
     })
 
     if(error){
@@ -115,100 +151,156 @@ const handleGoogleSignUp = async () =>{
 
 
     return(
-        <form onSubmit={handleSubmit(submitForm)}>
-            <div>
-                <label>Name</label>
-                <input 
-                type="text"
-                placeholder="Enter your name"
-                {...register("name",{
-                    required:"Name is Requuired",
-                    maxLength:{
-                        value:30,
-                        message:"Name must be atMost 30 character",
-                    }
-                })}
-                />
-                {errors.name && 
-                <p>{errors.name.message}</p>
-                }
+        <div 
+        className="flex justify-center items-center min-h-screen bg-gray-100">
+            <div
+            className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
+                <div 
+                className="text-center">
+                    <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-6">
+                        Join Mystery Message
 
-                <label>username</label>
-                <input 
-                type="text"
-                placeholder="Enter your username"
-                {...register("username",{
-                    required:"Username is Requuired",
-                    maxLength:{
-                        value:30,
-                        message:"Username must be atMost 30 character",
-                    }
-                })}
-                />
-                {errors.username && 
-                <p>{errors.username.message}</p>
-                }
+                    </h1>
+                    <p className="mb-4">
+                        Sign Up to start your anonymou adventure
+                    </p>
 
-                <label>Email</label>
-                <input
-                type="email"
-                placeholder="Enter Your Email"
-                {...register("email",{
-                    required:"Email is required",
-                    pattern: {
-                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                        message:"Invalid email addresh"
-                    },
-                })} 
-                />
-                {errors.email &&
-                <p>{errors.email.message}</p>
-                }
-
-
-                <label>password</label>
-                <input
-                type="password"
-                placeholder="Enter your password"
-                className="text-black"
-                {...register("password",{
-                    required:"Password is Required",
-                    minLength:{
-                        value:8,
-                        message:"Password must be at least 8 character"
-                    }
-                
-                })}
-                
-                />
-                {errors.password &&
-                <p>{errors.password.message}</p>
-                }
-
-                <div className="flex justify-center text-center gap-5 ">
-                <button
-                type="submit"
-                className="border border-color-red"
-                disabled={isSubmitting}
-                >
-                   {isSubmitting ? "submitting...":"signUp"}
-                </button>
-
-                <button 
-                type="button"
-                className="border-3 border-color-red rounded hover:bg-red-700 hover:border-blue-800 transition-all"
-                onClick={handleGoogleSignUp}
-                >
-                    signUp with Google
-                </button>
                 </div>
-                { errors.root && (
-                    <p>{errors.root.message}</p>
-                )}
+                <CardContent>
+                    <form onSubmit={form.handleSubmit(onSubmit)}>
+                    <Controller 
+                    name="username"
+                    control={form.control}
+                    render={({field,fieldState}) =>(
+                        <Field  data-invalid={ fieldState.invalid}>
+                            <FieldLabel htmlFor={field.name}>
+                                Username
+                            </FieldLabel>
 
+                            <Input 
+                            {...field}
+                            id={field.name}
+                            type="text"
+                            placeholder="Enter your unique username"
+                            aria-invalid={fieldState.invalid}
+                            />
+
+                            {fieldState.invalid && 
+                            <FieldError errors ={[fieldState.error]} />
+                            }
+
+                        </Field>
+
+                    )}
+                    />
+                    {isCheckingUSername &&
+                    <p>Checking Username...</p>}
+                    {!isCheckingUSername && isUsernameAvailable &&(
+                        <p>{ isUsernameAvailable}</p>
+                    )}
+
+                    <Controller 
+                    name="name"
+                    control={form.control}
+                    render={({field,fieldState}) =>(
+                        <Field data-invalid = {fieldState.invalid}>
+                            <FieldLabel htmlFor={field.name}>
+                                Name
+                            </FieldLabel>
+
+                            <Input
+                            { ...field}
+                            id={field.name}
+                            type="text"
+                            placeholder="Enter your name"
+                            aria-invalid={fieldState.invalid}
+                            />
+
+                            { fieldState.invalid &&
+                            <FieldError errors ={[fieldState.error]} />
+                            }
+                        </Field>
+                    )}
+                    />
+
+                    <Controller 
+                    name="email"
+                    control={form.control}
+                    render={({field,fieldState}) =>(
+                        <Field data-invalid = {fieldState.invalid}>
+                            <FieldLabel htmlFor={field.name}>
+                                Email
+                            </FieldLabel>
+
+                            <Input
+                            { ...field}
+                            id={field.name}
+                            type="email"
+                            placeholder="you@example.com"
+                            aria-invalid={fieldState.invalid}
+                            />
+
+                            { fieldState.invalid &&
+                            <FieldError errors ={[fieldState.error]} />
+                            }
+                        </Field>
+                    )}
+                    />
+
+                    <Controller 
+                    name="password"
+                    control={form.control}
+                    render={({field,fieldState}) =>(
+                        <Field data-invalid = {fieldState.invalid}>
+                            <FieldLabel htmlFor={field.name}>
+                                Password
+                            </FieldLabel>
+
+                            <Input
+                            { ...field}
+                            id={field.name}
+                            type="password"
+                            placeholder="Enter you password"
+                            aria-invalid={fieldState.invalid}
+                            />
+
+                            { fieldState.invalid &&
+                            <FieldError errors ={[fieldState.error]} />
+                            }
+                        </Field>
+                    )}
+                    />
+
+                    <Button
+                    type="submit"
+                    disabled={ isSubmitting}
+                    >
+                       {isSubmitting ? (
+                       <>
+                       <Loader2 className="mr-2 h-4 w-4 animate-spin"  />
+                       Creating Account...
+                       </>):("Sign Up")
+                        } 
+                    </Button>
+                    </form>
+                    <Button
+                    type="button"
+                    disabled ={isSubmitting}
+                    onClick={handleGoogleSignUp}
+                    >
+                        {isSubmitting ? (
+                        <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                        Signing Up...
+                        </>):("Sign Un With Google")
+                        }
+
+                    </Button>
+
+                </CardContent>
             </div>
-
-        </form>
+        </div>
+        
     )
 }
 

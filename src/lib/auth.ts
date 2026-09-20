@@ -13,6 +13,8 @@ import { sendOtpEmail } from "@/helper/sendEmail";
 
     emailAndPassword:{
         enabled:true,
+        requireEmailVerification:true,
+        autoSignIn:false,
 
     },
     socialProviders:{

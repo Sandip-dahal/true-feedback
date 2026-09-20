@@ -7,11 +7,13 @@ export const userNameValidation = z
     .regex(/^[a-zA-Z0-9_]+$/, "Username must not contain special character")
 
 export const signUpValidation = z.object({
+    username: userNameValidation,
+    
     name: z
     .string()
     .min(2,"Name must be atLeast 2 character")
     .max(30,"Name must be at1most 30 character")
-    .regex(/^[a-zA-Z0-9_]+$/, "UserName must not contain special character"),
+    .regex(/^[a-zA-Z0-9_ ]+$/, "name must not contain special character"),
 
     email:z
     .email({message:"INvalid email address"})
