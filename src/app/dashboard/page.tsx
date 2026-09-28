@@ -12,6 +12,7 @@ const Dashboard = async() =>{
   const session = await auth.api.getSession({
     headers:await headers()
   })
+ 
    console.log("DASHBOARD PAGE - session exists:", !!session)
 
 
@@ -26,11 +27,9 @@ const Dashboard = async() =>{
   return(
     <div>
       <ClientDashboard 
-      name={session.user.name}
-      email={session.user.email}
       />
 
-      <Logout />
+      
     </div>
   )
 }

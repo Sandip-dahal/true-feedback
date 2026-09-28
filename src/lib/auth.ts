@@ -29,7 +29,17 @@ import { sendOtpEmail } from "@/helper/sendEmail";
                 type:"string",
                 required:true,
             }
+        },
+        isAcceptingMessage:{
+            type:"boolean",
+            required:false,
+            defaultValue: true,
         }
+    },
+    session:{
+        expiresIn:60*10,
+        updateAge:60,
+
     },
     plugins:[
         emailOTP({

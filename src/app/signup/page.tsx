@@ -11,8 +11,11 @@ import axios from "axios"
 import { Loader2 } from "lucide-react"
 import { CardContent } from "@/components/ui/card"
 import { Field, FieldLabel,FieldError } from "@/components/ui/field"
-import { Input } from "@base-ui/react/input"
+import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
+import { toast } from "@/components/ui/toast"
+
 
 
 type SignUpFormData = {
@@ -77,6 +80,10 @@ const  SignupForm = () =>{
 
                 setIsUsernameAvailable(response.data.success)
                 setIsCheckingUsername(response.data.message)
+                toast.add({
+                    title:"Success",
+                    description: "username is available"
+                })
             } catch (error) {
                 //request was cancelled because username changed
                 if(axios.isCancel(error)){
@@ -122,9 +129,16 @@ const  SignupForm = () =>{
 
         if(otpError){
             setError("Account Created but we couldnt send the verification OTP")
+            toast.add({
+                title:"Failed",
+                description:"Failed to send OTP"
+            })
             return
         }
-
+        toast.add({
+            title:"Sucess",
+            description:`OTP is sent to ${data.email}`
+        })
         //Go to verification page.... where you enter the otp
         router.push(`/verify-otp?email=${encodeURIComponent(data.email)}`)
         router.refresh()
@@ -152,9 +166,9 @@ const handleGoogleSignUp = async () =>{
 
     return(
         <div 
-        className="flex justify-center items-center min-h-screen bg-gray-100">
+        className="flex justify-center items-center min-h-screen bg-gray-200">
             <div
-            className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
+            className="w-full max-w-md p-8 space-y-8 bg-white rounded-xl shadow-md">
                 <div 
                 className="text-center">
                     <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-6">
@@ -167,7 +181,7 @@ const handleGoogleSignUp = async () =>{
 
                 </div>
                 <CardContent>
-                    <form onSubmit={form.handleSubmit(onSubmit)}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                     <Controller 
                     name="username"
                     control={form.control}
@@ -270,9 +284,11 @@ const handleGoogleSignUp = async () =>{
                         </Field>
                     )}
                     />
-
+                    
+                    <div className="flex gap-8 mt-5">
                     <Button
                     type="submit"
+                    className="flex-1"
                     disabled={ isSubmitting}
                     >
                        {isSubmitting ? (
@@ -282,20 +298,27 @@ const handleGoogleSignUp = async () =>{
                        </>):("Sign Up")
                         } 
                     </Button>
-                    </form>
+                    
                     <Button
                     type="button"
-                    disabled ={isSubmitting}
+                    className="flex-1"
                     onClick={handleGoogleSignUp}
                     >
-                        {isSubmitting ? (
-                        <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                        Signing Up...
-                        </>):("Sign Un With Google")
-                        }
-
+                        Sign Up With Google
                     </Button>
+                    </div>
+                    
+                  
+
+                    <div className="text-center mt-2">
+                        <p>
+                            Already a member?{""}
+                            <Link href="/signin" className="text-blue-600 hover:text-blue-800">
+                                Sign In
+                            </Link>
+                        </p>
+                    </div>
+                    </form>
 
                 </CardContent>
             </div>

@@ -38,7 +38,7 @@ const GET = async(request:Request) =>{
         return Response.json(
             {
                 success:true,
-                data:feedbackMessage
+                messages:feedbackMessage
             },
             {status:200}
         )

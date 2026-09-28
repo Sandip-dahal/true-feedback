@@ -25,3 +25,4 @@ const message = pgTable("message",{
 export {
     message
 }
+export type Message = typeof message.$inferSelect

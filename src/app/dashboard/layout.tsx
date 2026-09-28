@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+
 import { Toaster } from "@/components/ui/toast"
-import { Logout } from "@/component/Logout";
+
 
 
 const geistSans = Geist({
@@ -27,14 +27,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-    <nav className="flex gap-4">
-      <a href="/"></a>
-      <a href="/dashboard">Dashboard</a>
-      <a href="/signup">sign-up</a>
-      <a href="/signin">sign-in</a>
-      
-      
-    </nav>   
+        
         
     {children}
      <Toaster />

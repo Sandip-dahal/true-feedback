@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { CardContent } from "@/components/ui/card";
 import { Field,FieldLabel,FieldError } from "@/components/ui/field";
-import { Link, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 const signinPage = () =>{ 
     const router = useRouter()
@@ -42,7 +42,7 @@ const signinPage = () =>{
 
             if(error){
             toast.add({
-                title:"success",
+                title:"Login Failed",
                 description: error.message,
             })
             }
@@ -67,7 +67,7 @@ const signinPage = () =>{
 
     return(
         <div
-        className="flex justify-center items-center min-h-screen bg-gray-100">
+        className="flex justify-center items-center min-h-screen bg-gray-200">
             <div
             className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
                 <div
@@ -132,7 +132,7 @@ const signinPage = () =>{
                         )}
 
                         />
-
+                        <div className="flex justify-center">
                         <Button
                         type="submit"
                         disabled={isSubmitting || !form.formState.isValid}
@@ -145,15 +145,9 @@ const signinPage = () =>{
                             }
 
                         </Button>
-                        </form>
-                        <div className="text-center mt-2">
-                            <p>
-                                Already a member?{""}
-                                <Link href="/signin" className="text-blue-600 hover:text-blue-800">
-                                Sign In
-                                </Link>
-                            </p>
                         </div>
+                        </form>
+                        
                 </CardContent>
 
 
