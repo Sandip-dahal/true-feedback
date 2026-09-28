@@ -1,10 +1,11 @@
 import { db } from "@/database/db";
 import { auth } from "@/lib/auth";
 import {user} from "@/model/User"
-import {  z } from "zod";
+import {  success, z } from "zod";
 import { acceptingMeassageValidation} from "@/schemas/AcceptingMessageSchema"
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
+import { message } from "@/model/Message";
 
 
 const acceptMessageSchema = acceptingMeassageValidation
@@ -45,17 +46,17 @@ export async function POST(request:Request) {
             )
         }
     
-        const {isAcceptingMessage } = result.data
+        const {isAcceptingMessages } = result.data
     
         const [ updatedUser] = await db
         .update(user)
         .set({
-            isAcceptingMessage:isAcceptingMessage
+            isAcceptingMessage:isAcceptingMessages
         })
         .where(eq(user.id,session.user.id))
         .returning({
             id:user.id,
-            isAcceptingMessage:user.isAcceptingMessage
+            isAcceptingMessages:user.isAcceptingMessage
         })
     
         if(!updatedUser){
@@ -71,9 +72,9 @@ export async function POST(request:Request) {
         return Response.json(
             {
                 success:true,
-                message:isAcceptingMessage? "You are now accepting message": "You are no longer Accepting Message",
+                message:isAcceptingMessages? "You are now accepting message": "You are no longer Accepting Message",
                 data:{
-                    isAcceptingMessage:updatedUser.isAcceptingMessage
+                    isAcceptingMessages:updatedUser.isAcceptingMessages
                 }
             },
             {status:200}
@@ -92,6 +93,67 @@ export async function POST(request:Request) {
     }
 
 
+
+    
+}
+
+export async function GET(request: Request){
+    const session = await auth.api.getSession({
+        headers : request.headers,
+    })
+
+    if(!session || !session?.user){
+        return Response.json(
+            {
+                success: false,
+                message:"Not Authenticated"
+            },
+            {status:401}
+        )
+    }
+
+    try {
+        //retrieve the user from the db using id
+        const [availableuser] = await db
+        .select({
+            isAcceptingMessage:user.isAcceptingMessage
+        })
+        .from(user)
+        .where(eq(user.id, session.user.id))
+
+        if(!availableuser){
+            return Response.json({
+                success:false,
+                message: "user not found"
+            },
+            {status:404}
+         )
+        }
+// Return user message acceotance status....
+        return Response.json(
+            {
+                success: true,
+                isAcceptingMessage:availableuser.isAcceptingMessage ,
+            },
+            {status:200}
+        )
+
+    } catch (error) {
+        console.error("Error retreving user:", error)
+
+        return Response.json(
+            {
+                success:false,
+                message: "Internal server error"
+            },
+            {
+                status:500
+            }
+        )
+        
+    }
+
+    
 
     
 }

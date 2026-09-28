@@ -24,7 +24,7 @@ const GET = async(request:Request) =>{
             })
         }
     
-        const feedbackMessage = await db
+        const [feedbackMessage] = await db
         .select({
             id:message.id,
             content:message.content,
