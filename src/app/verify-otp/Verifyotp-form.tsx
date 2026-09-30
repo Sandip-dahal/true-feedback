@@ -11,6 +11,13 @@ import { Field, FieldLabel, FieldError} from "@/components/ui/field"
 import { CardContent} from "@/components/ui/card"
 import { Loader2 } from "lucide-react";
 
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp"
+import { REGEXP_ONLY_DIGITS } from "input-otp"
+
 
 
 type VerifuOtpFromProps = {
@@ -115,18 +122,27 @@ const VerifyOtpForm = ({email}:VerifuOtpFromProps) =>{
                         }}
                         render={({field,fieldState}) =>(
                             <Field data-invalid={fieldState.invalid}>
-
-                                <Input
-                                {...field}
-                                id={field.name}
-                                type="text"
-                                placeholder="000000"
-                                maxLength={6}
-                                inputMode="numeric"
-                                autoComplete="one-time-code"
+                                <InputOTP 
+                                id={field.name} 
+                                maxLength={6} 
+                                pattern={REGEXP_ONLY_DIGITS}
+                                onBlur={field.onBlur}
+                                onChange={field.onChange}
                                 disabled={isSubmitting}
                                 aria-invalid={fieldState.invalid}
-                                />
+                                >
+                                <InputOTPGroup>
+                                
+                                    <InputOTPSlot index={0} />
+                                    <InputOTPSlot index={1} />
+                                    <InputOTPSlot index={2} />
+                                    <InputOTPSlot index={3} />
+                                    <InputOTPSlot index={4} />
+                                    <InputOTPSlot index={5} />
+                                </InputOTPGroup>
+                                </InputOTP>
+
+                                
 
                                 {fieldState.invalid && (
                                     <FieldError errors ={[fieldState.error]} />
@@ -185,4 +201,14 @@ const VerifyOtpForm = ({email}:VerifuOtpFromProps) =>{
 
 export default VerifyOtpForm
 
-
+{/* <Input
+                                {...field}
+                                id={field.name}
+                                type="text"
+                                placeholder="000000"
+                                maxLength={6}
+                                inputMode="numeric"
+                                autoComplete="one-time-code"
+                                disabled={isSubmitting}
+                                aria-invalid={fieldState.invalid}
+                                /> */}

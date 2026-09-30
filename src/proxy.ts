@@ -12,15 +12,14 @@ export async function proxy(request:NextRequest) {
         (
             request.nextUrl.pathname.startsWith("/signup")||
             request.nextUrl.pathname.startsWith("/signin") ||
-            request.nextUrl.pathname.startsWith("/verify-otp")||
-            request.nextUrl.pathname===("/")
+            request.nextUrl.pathname.startsWith("/verify-otp")
+            
         ))
         {
             return Response.redirect(new URL("/dashboard",request.url))
         }
 
-        if(!session && (request.nextUrl.pathname.startsWith("/dashboard")||
-            request.nextUrl.pathname===("/")))
+        if(!session && (request.nextUrl.pathname.startsWith("/dashboard")))
             {
             return NextResponse.redirect(new URL("/signin",request.url))
         }

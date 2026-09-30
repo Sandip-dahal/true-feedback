@@ -6,12 +6,15 @@ import { eq } from "drizzle-orm";
 
 
 
+
 const POST = async(request:Request) =>{
 
    try {
-     const body = await request.json()
+     const {content, username} = await request.json()
  
-     const result = messageSchema.safeParse(body)
+     const result = messageSchema.safeParse({content})
+
+
  
      if(!result.success){
          console.error("Failed while sending data",result.error)
@@ -34,7 +37,7 @@ const POST = async(request:Request) =>{
          })
      .from(user)
      .where(eq
-         (user.username,result.data.username)
+         (user.username,username)
      )
      .limit(1)
  
@@ -81,3 +84,60 @@ const POST = async(request:Request) =>{
 }
 
 export { POST}
+
+// Practice of wrtiing the code ...........................
+
+// export async function GET(request:Request){
+
+//     const body = await request.json()
+//     const result = messageSchema.safeParse(body)
+
+//     if(!result.success){
+//         return Response.json({
+//             success:false,
+//             message:"Failed to send message"
+//         })
+//     }
+
+//     const [receiver] = await db
+//     .select(
+//         {
+//             id:user.id,
+//             isAcceptingMessage:user.isAcceptingMessage
+//         }
+//     )
+//     .from(user)
+//     .where(eq(user.username,result.data.username))
+//     .limit(1)
+
+
+//     if(!receiver.isAcceptingMessage){
+//         return Response.json({
+//             success:false,
+//             message:`${result.data.username} is currently not receiving the message`
+//         },
+//         {status:401}
+//     )
+//     }
+
+//     await db
+//     .insert(message)
+//     .values({
+//         content:result.data.content,
+//         receiver_id:receiver.id
+
+//     })
+
+//     return Response.json(
+//         {
+//             success:true,
+//             message:"Message sent succesfully"
+
+//         },
+//         {status:200}
+//     )
+    
+
+
+
+// }

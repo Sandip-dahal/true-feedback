@@ -69,7 +69,7 @@ const  SignupForm = () =>{
             try {
                 setIsCheckingUsername(true)
 
-                const response = await axios.get(`/api/Check-username-unique`,
+                const response = await axios.get(`/api/check-username-unique`,
                     {
                         params:{
                             username: trimUsername
