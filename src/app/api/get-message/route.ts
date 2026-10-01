@@ -7,6 +7,7 @@ import { headers } from "next/headers";
 
 
 
+
 const GET = async(request:Request) =>{
 
     try {
@@ -24,7 +25,7 @@ const GET = async(request:Request) =>{
             })
         }
     
-        const [feedbackMessage] = await db
+        const feedbackMessage = await db
         .select({
             id:message.id,
             content:message.content,
@@ -33,6 +34,8 @@ const GET = async(request:Request) =>{
         .from(message)
         .where(eq(message.receiver_id,session.user.id))
         .orderBy(desc(message.created_at))
+
+        console.log("Feedback Message:",feedbackMessage)
     
     
         return Response.json(

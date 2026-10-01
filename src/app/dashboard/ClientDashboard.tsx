@@ -28,17 +28,56 @@ function ClientDashboard() {
   const [isSwitchLoading, setIsSwitchLoading] = useState(false)
 
   //optimistic ui for delete....
-  const handleDeleteMessage = (messageId: string) =>{
-    setMessages(messages.filter((message) => message.id !== messageId))
+  const handleDeleteMessage = async(messageId: string) =>{
+
+  //holding the message to be deleted so can be restore if dlt fails
+    const deleteMessageIndex = messages.findIndex((message) => message.id !== messageId)
+    const deleteMessage = messages[deleteMessageIndex]
+    if(!deleteMessage) return
+
+
+
+// Optimistic UI dlt.......
+    setMessages((prevMessages) => prevMessages.filter((message) => message.id !== messageId))
+
+
+
+// Actual delete the message from db.........
+    try {
+      const response = await axios.delete(`/api/delete-message`,{
+        params:{
+          messageId,
+        }
+      })
+  
+      toast.add({
+        title:"Feedback is deleted"
+      })
+    } catch (error) {
+
+      // Api fails --> Restore
+      setMessages((prevMessages) => {
+
+        const restoredMessage = [...prevMessages]
+        restoredMessage.splice(deleteMessageIndex,0,deleteMessage)
+        return restoredMessage
+      })
+          
+
+      toast.add({
+        title: "Failed to delete Message"
+      })
+      
+    }
   }
 
   const { data: session } = authClient.useSession()
 
   const form = useForm({
     resolver: zodResolver(acceptingMeassageValidation),
-    // defaultValues:{
-    //   isAcceptingMessages:true
-    // }
+     defaultValues:{
+      isAcceptingMessages:true
+    }
   })
   const {
     register,
@@ -76,6 +115,8 @@ function ClientDashboard() {
     setIsSwitchLoading(false)
     try {
       const response = await axios.get<ApiResponse>(`/api/get-message`)
+      //console.log("Response Data:", response.data)
+      //console.log("Messages:", response.data?.messages)
       setMessages(response.data?.messages || [])
 
       if(refresh){

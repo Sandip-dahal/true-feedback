@@ -16,14 +16,16 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
+  AlertDialogMedia,
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Button } from "./ui/button"
-import { X } from "lucide-react"
+import { Trash2Icon, X } from "lucide-react"
 import axios from "axios"
 import type { Message} from "@/model/Message"
 import { toast } from "./ui/toast"
+import { ApiResponse } from "@/types/ApiResponse"
 
 type MessageCardProps = {
   message : Message,
@@ -33,11 +35,29 @@ type MessageCardProps = {
 
 function MessageCard({message,onMessageDelete}:MessageCardProps) {
 
+    
     const handleDelete = async () => {
-        const response = await axios.delete(`/api/delete-message/${message.id}`)
+
+      try {
+        onMessageDelete(message.id)
+        
+          // const response = await axios.delete<ApiResponse>(`/api/delete-message`,{
+          //   params:{
+          //   messageId:message.id}}
+          // )
+          
+          // toast.add({
+          //     title: response.data.message
+          // })
+
+      } catch (error) {
+        console.error("Internal server error while deleting message:", error)
         toast.add({
-            title: response.data.message
+          title:"ERROR",
+          description : "Internal server error while deleting message"
         })
+        
+      }
         
     }
   return (
@@ -46,11 +66,14 @@ function MessageCard({message,onMessageDelete}:MessageCardProps) {
     <CardTitle>{message.content}</CardTitle>
     <CardDescription>{new Date(message.created_at).toLocaleDateString()}</CardDescription>
     <AlertDialog>
-  <AlertDialogTrigger render={<Button variant="outline"><X className="w-5 h-5" /></Button>} >
+  <AlertDialogTrigger render={<Button variant="destructive"><X className="w-5 h-5" /></Button>} >
     Show Dialog
   </AlertDialogTrigger>
-  <AlertDialogContent>
+  <AlertDialogContent size="sm">
     <AlertDialogHeader>
+      <AlertDialogMedia className="bg-destructive/10 text-destructive dark-bg-destructive/20 dark:text-destructive">
+      <Trash2Icon />
+      </AlertDialogMedia>
       <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
       <AlertDialogDescription>
         This action cannot be undone. This will permanently delete your message
@@ -58,8 +81,8 @@ function MessageCard({message,onMessageDelete}:MessageCardProps) {
       </AlertDialogDescription>
     </AlertDialogHeader>
     <AlertDialogFooter>
-      <AlertDialogCancel>Cancel</AlertDialogCancel>
-      <AlertDialogAction onClick={handleDelete}>Continue</AlertDialogAction>
+      <AlertDialogCancel variant="outline">Cancel</AlertDialogCancel>
+      <AlertDialogAction variant="destructive" onClick={handleDelete}>Continue</AlertDialogAction>
     </AlertDialogFooter>
   </AlertDialogContent>
 </AlertDialog>
