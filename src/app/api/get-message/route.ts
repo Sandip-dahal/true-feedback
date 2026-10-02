@@ -35,7 +35,7 @@ const GET = async(request:Request) =>{
         .where(eq(message.receiver_id,session.user.id))
         .orderBy(desc(message.created_at))
 
-        console.log("Feedback Message:",feedbackMessage)
+        // console.log("Feedback Message:",feedbackMessage)
     
     
         return Response.json(

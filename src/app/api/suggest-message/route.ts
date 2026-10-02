@@ -1,6 +1,8 @@
 import { groq } from "@ai-sdk/groq";
-import { generateText} from "ai"
+import { generateText, Output} from "ai"
 import { aiSuggestionSchema } from "@/schemas/AiSuggestionSchema";
+import { suggestAfterAiSchema} from "@/schemas/SuggestAfterAiSchema"
+
 
 
 
@@ -25,8 +27,12 @@ export async function POST(request:Request) {
 
 //Ask Ai to generate feedback....
 
-    const { text} = await generateText({
-        model:groq("llama-3.3-70b-versatile"), 
+    const {output} = await generateText ({
+        model:groq("openai/gpt-oss-120b"), 
+        output: Output.object({
+            schema:suggestAfterAiSchema
+        }),
+
         system: `
         you generate anonymous feedback message fro a social feedback application.
 
@@ -40,15 +46,16 @@ export async function POST(request:Request) {
         -return only the feedback message
 
         `,
-        prompt: ` Generate one anonymous feedback message
-            tpoic:${topic}
+        prompt: ` Generate exactly three anonymous feedback message
+            topic:${topic}
             tone:${tone}
 
             keep it between 1 and 2 sentences
         `,
     })
 
-    const suggestion = text.trim()
+    const suggestion = output.suggestion
+   
     if(!suggestion){
         return Response.json(
             {

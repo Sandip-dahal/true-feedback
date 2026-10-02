@@ -22,10 +22,9 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button } from "./ui/button"
 import { Trash2Icon, X } from "lucide-react"
-import axios from "axios"
 import type { Message} from "@/model/Message"
 import { toast } from "./ui/toast"
-import { ApiResponse } from "@/types/ApiResponse"
+
 
 type MessageCardProps = {
   message : Message,
@@ -36,7 +35,7 @@ type MessageCardProps = {
 function MessageCard({message,onMessageDelete}:MessageCardProps) {
 
     
-    const handleDelete = async () => {
+    const handleDelete = () => {
 
       try {
         onMessageDelete(message.id)
