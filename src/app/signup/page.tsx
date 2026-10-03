@@ -30,6 +30,7 @@ type SignUpFormData = {
 const  SignupForm = () =>{
 
     const router = useRouter()
+
     const [ isCheckingUSername, setIsCheckingUsername] = useState(false)
     const [ isUsernameAvailable, setIsUsernameAvailable] = useState<boolean | string>("")
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -108,40 +109,49 @@ const  SignupForm = () =>{
 
     const onSubmit = async(data:SignUpFormData) =>{
 
-        const { error} = await authClient.signUp.email({
-            username:data.username,
-            name : data.name,
-            email: data.email,
-            password : data.password,
-        })
 
-        if(error) {
-            setError("Unable to create Account")
-            return
-            
-        }
-
-        const { error: otpError} = await authClient.emailOtp.sendVerificationOtp({
-            email:data.email,
-            type: "email-verification"
-
-        })
-
-        if(otpError){
-            setError("Account Created but we couldnt send the verification OTP")
-            toast.add({
-                title:"Failed",
-                description:"Failed to send OTP"
+        try {
+            setIsSubmitting(true)
+            const { error} = await authClient.signUp.email({
+                username:data.username,
+                name : data.name,
+                email: data.email,
+                password : data.password,
             })
-            return
+    
+            if(error) {
+                setError("Unable to create Account")
+                return
+                
+            }
+    
+            const { error: otpError} = await authClient.emailOtp.sendVerificationOtp({
+                email:data.email,
+                type: "email-verification"
+    
+            })
+    
+            if(otpError){
+                setError("Account Created but we couldnt send the verification OTP")
+                toast.add({
+                    title:"Failed",
+                    description:"Failed to send OTP"
+                })
+                return
+            }
+            toast.add({
+                title:"Sucess",
+                description:`OTP is sent to ${data.email}`
+            })
+            //Go to verification page.... where you enter the otp
+            router.push(`/verify-otp?email=${encodeURIComponent(data.email)}`)
+            router.refresh()
+        } catch (error) {
+            console.error("Internal server error while sign up :", error)
+            
+        } finally{
+            setIsSubmitting(false)
         }
-        toast.add({
-            title:"Sucess",
-            description:`OTP is sent to ${data.email}`
-        })
-        //Go to verification page.... where you enter the otp
-        router.push(`/verify-otp?email=${encodeURIComponent(data.email)}`)
-        router.refresh()
 
     }
 

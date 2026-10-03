@@ -1,6 +1,7 @@
 import {NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { auth } from "./lib/auth";
+import { toast } from "./components/ui/toast";
 
 export async function proxy(request:NextRequest) {
     const session = await auth.api.getSession({
@@ -22,6 +23,7 @@ export async function proxy(request:NextRequest) {
         if(!session && (request.nextUrl.pathname.startsWith("/dashboard")))
             {
             return NextResponse.redirect(new URL("/signin",request.url))
+            
         }
 
         return NextResponse.next();

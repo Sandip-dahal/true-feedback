@@ -15,6 +15,9 @@ import { Loader2 } from 'lucide-react'
 import { useParams } from 'next/navigation'
 import  {aiSuggestionSchema}  from "@/schemas/AiSuggestionSchema"
 import { Separator } from '@/components/ui/separator'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Select } from '@/components/ui/select'
 
 
 function page() {
@@ -34,7 +37,7 @@ function page() {
   
 
 
-  const defaultSuggestMessages = ["Good","Bad","Modrate"]
+  const defaultSuggestMessages = ["How are you","What is your major subjects.","What is your qualification"]
 
   const handleMessageClick = (message:string) =>{
     form.setValue("content",message)
@@ -76,7 +79,7 @@ function page() {
     resolver: zodResolver(aiSuggestionSchema),
     defaultValues:{
       topic:"",
-      tone: "friendly"
+      tone: "Friendly"
     }
   })
 
@@ -125,7 +128,8 @@ const fetchAiMessage = async({topic,tone}: z.infer<typeof aiSuggestionSchema>) =
 
 
   return (
-    <div className='container mx-auto my-8 p-6 bg-white rounded max-w-4xl'>
+    <div className='bg-gray-200'>
+    <div className='container mx-auto my-8 p-6 bg-white rounded max-w-4xl shadow-2xl rounded-lg'>
       <h1 className="text-4xl font-bold mb-6 text-center">
         Public Profile Link
 
@@ -142,13 +146,13 @@ const fetchAiMessage = async({topic,tone}: z.infer<typeof aiSuggestionSchema>) =
         name="content"
         render={({field, fieldState}) =>(
           <Field data-invalid={fieldState.invalid}>
-            <FieldLabel>
+            <FieldLabel className='font-semibold text-md'>
               Send Anonymous message to @{username}
             </FieldLabel>  
 
-            <textarea
+            <Textarea
             placeholder='write your anonymous message here'
-            className='resize-none'
+            className='resize-none border rounded-lg border-gray-900'
             {...field}
             />
             {fieldState.invalid &&
@@ -174,45 +178,49 @@ const fetchAiMessage = async({topic,tone}: z.infer<typeof aiSuggestionSchema>) =
               Send It
             </Button>
           )}
-
-
         </div>
+        
 
       </form>
       </CardContent>
+      <Separator className="my-3 bg-black" />
 
       <div className='space-y-4 my-8 border-dotted'>
+      
       <form onSubmit= {aiForm.handleSubmit(handleMessage)}>
+        <div className='flex flex-col justify-center'>
         <label>TOPIC:</label>
-        <input 
+        <Input 
         type='text'
-        placeholder='enter your topic'
-        className='border'
+        placeholder='Enter Your Topic'
+        className='border rounded-md border-gray-900 my-2 py-2 w-64'
         {...aiForm.register("topic")}
         />
         {aiForm.formState.errors.topic && (
           <p  className='text-red-900'>{aiForm.formState.errors.topic.message}</p>
         )}
 
-        <label>TONE:</label>
+        <label className='my-2'>TONE:</label>
         <select
         {...aiForm.register("tone")}
-        className='border'>
-          <option value="friendly">friendly</option>
-          <option value="casual">casual</option>
-          <option value="constructive">constructive</option>
-          <option value="honest">honest</option>
+        className='border rounded-md border-gray-900 py-2 w-64'
+        >
+          <option value="Friendly">Friendly</option>
+          <option value="Casual">Casual</option>
+          <option value="Constructive">Constructive</option>
+          <option value="Honest">Honest</option>
         </select>
 
         <Button
         type='submit'
-        className="my-4"
+        className=" w-fit my-4 justify-center text-lg"
         disabled={isSuggestMessageLoading}
         >
           {isSuggestMessageLoading ? (
             <Loader2 />
-          ):("suggest message")}
+          ):("Suggest Messages")}
         </Button>
+        </div>
         <h3 className='text-2xl font-bold italic'>Messages</h3>
         <Separator className="my-3" />
 
@@ -227,7 +235,15 @@ const fetchAiMessage = async({topic,tone}: z.infer<typeof aiSuggestionSchema>) =
                 {item}
               </Button>
             ))
-          ):(defaultSuggestMessages)}
+          ):(defaultSuggestMessages.map((item,index) =>(
+            <Button
+            key={index}
+            onClick={() =>handleMessageClick(item)}
+            className=' w-full h-auto min-h-10 justify-center whitespace-normal rounded-lg border border-gray-200 bg-white px-4 py-3 my-2 text-center text-sm font-normal leading-relaxed text-gray-800 shadow-lg transition-all duration-200 hover:border-green-900 hover:bg-gray-600 hover:shadow-2xl active:scale-[0.99] hover:text-white'
+            >
+              {item}
+            </Button>
+          )))}
           </div>
         
 
@@ -237,6 +253,7 @@ const fetchAiMessage = async({topic,tone}: z.infer<typeof aiSuggestionSchema>) =
       </form>
       </div>
 
+    </div>
     </div>
   )
 }

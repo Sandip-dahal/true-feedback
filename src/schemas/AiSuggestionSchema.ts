@@ -9,9 +9,9 @@ export const aiSuggestionSchema = z.object({
 
     tone: z
     .enum([
-        "friendly",
-        "casual",
+        "Friendly",
+        "Casual",
         "constructive",
-        "honest"
+        "Honest"
     ])
 })

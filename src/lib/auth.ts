@@ -37,8 +37,8 @@ import { sendOtpEmail } from "@/helper/sendEmail";
         }
     },
     session:{
-        expiresIn:60*10,
-        updateAge:60,
+        expiresIn:60*60*24,
+        updateAge:60*60,
 
     },
     plugins:[

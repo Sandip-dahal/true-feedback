@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator' 
 import { Switch } from '@/components/ui/switch'
 import { RefreshCcw } from "lucide-react"
+import LoadingSkeleton from '@/helper/Loading'
 
 
 
@@ -203,7 +204,7 @@ function ClientDashboard() {
             type="text"
             value={profileUrl}
             disabled
-            className="input input-bordered w-full p-2 mr-2"
+            className="border border-2 border-gray-300 w-full p-1 mr-2 rounded-lg"
           />
           <Button onClick={copyToClipboard}>Copy</Button>
         </div>
@@ -237,7 +238,16 @@ function ClientDashboard() {
         )}
       </Button>
       <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
-        {messages.length > 0 ? (
+        {isLoading ? (
+          Array.from({length:6}).map((_,index) =>(
+            <LoadingSkeleton  key={index}/>
+          ))
+          
+
+          
+        ):(
+        
+        messages.length > 0 ? (
           messages.map((message, index) => (
             <MessageCard
               key={message.id}
@@ -247,6 +257,7 @@ function ClientDashboard() {
           ))
         ) : (
           <p>No messages to display.</p>
+        )
         )}
       </div>
     </div>

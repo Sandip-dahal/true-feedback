@@ -24,6 +24,7 @@ import { Button } from "./ui/button"
 import { Trash2Icon, X } from "lucide-react"
 import type { Message} from "@/model/Message"
 import { toast } from "./ui/toast"
+import { Skeleton } from "./ui/skeleton"
 
 
 type MessageCardProps = {
@@ -39,15 +40,6 @@ function MessageCard({message,onMessageDelete}:MessageCardProps) {
 
       try {
         onMessageDelete(message.id)
-        
-          // const response = await axios.delete<ApiResponse>(`/api/delete-message`,{
-          //   params:{
-          //   messageId:message.id}}
-          // )
-          
-          // toast.add({
-          //     title: response.data.message
-          // })
 
       } catch (error) {
         console.error("Internal server error while deleting message:", error)
@@ -63,10 +55,12 @@ function MessageCard({message,onMessageDelete}:MessageCardProps) {
 <Card>
   <CardHeader>
     <CardTitle>{message.content}</CardTitle>
-    <CardDescription>{new Date(message.created_at).toLocaleDateString()}</CardDescription>
+    <CardDescription>
+      {new Date(message.created_at).toLocaleDateString()}
+      </CardDescription>
     <AlertDialog>
-  <AlertDialogTrigger render={<Button variant="destructive"><X className="w-5 h-5" /></Button>} >
-    Show Dialog
+  <AlertDialogTrigger render={<Button variant="destructive"><Trash2Icon size={20} className="w-fit h-5" /></Button>} >
+    
   </AlertDialogTrigger>
   <AlertDialogContent size="sm">
     <AlertDialogHeader>
