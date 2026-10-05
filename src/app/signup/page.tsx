@@ -32,7 +32,7 @@ const  SignupForm = () =>{
     const router = useRouter()
 
     const [ isCheckingUSername, setIsCheckingUsername] = useState(false)
-    const [ isUsernameAvailable, setIsUsernameAvailable] = useState<boolean | string>("")
+    const [ isUsernameAvailable, setIsUsernameAvailable] = useState<boolean | null>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [error , setError] = useState("")
 
@@ -59,7 +59,7 @@ const  SignupForm = () =>{
 
         if(!trimUsername){
             setIsCheckingUsername(false)
-            setIsUsernameAvailable(false)
+            setIsUsernameAvailable(null)
             return
 
         }
@@ -68,9 +68,10 @@ const  SignupForm = () =>{
 
         const timer = setTimeout( async () =>{
             try {
+                console.log("USERNAME CHECKING .....")
                 setIsCheckingUsername(true)
 
-                const response = await axios.get(`/api/check-username-unique`,
+                const response = await axios.get(`/api/check-username`,
                     {
                         params:{
                             username: trimUsername
@@ -80,10 +81,9 @@ const  SignupForm = () =>{
                 )
 
                 setIsUsernameAvailable(response.data.success)
-                setIsCheckingUsername(response.data.message)
                 toast.add({
                     title:"Success",
-                    description: "username is available"
+                    description: response.data.message
                 })
             } catch (error) {
                 //request was cancelled because username changed
@@ -186,7 +186,7 @@ const handleGoogleSignUp = async () =>{
 
                     </h1>
                     <p className="mb-4">
-                        Sign Up to start your anonymou adventure
+                        Sign Up to start your anonymous adventure
                     </p>
 
                 </div>
@@ -205,6 +205,7 @@ const handleGoogleSignUp = async () =>{
                             {...field}
                             id={field.name}
                             type="text"
+                            required
                             placeholder="Enter your unique username"
                             aria-invalid={fieldState.invalid}
                             />
@@ -217,11 +218,13 @@ const handleGoogleSignUp = async () =>{
 
                     )}
                     />
-                    {isCheckingUSername &&
-                    <p>Checking Username...</p>}
-                    {!isCheckingUSername && isUsernameAvailable &&(
-                        <p>{ isUsernameAvailable}</p>
-                    )}
+                    {isCheckingUSername ?(
+                        <p className="text-gray-500">Checking username....</p>
+                    ): isUsernameAvailable === true ?(
+                        <p className="text-green-600">Username is available</p>
+                    ): isUsernameAvailable === false ?(
+                            <p className="text-red-600">Username Already taken</p>
+                    ): null}
 
                     <Controller 
                     name="name"
@@ -236,6 +239,7 @@ const handleGoogleSignUp = async () =>{
                             { ...field}
                             id={field.name}
                             type="text"
+                            required
                             placeholder="Enter your name"
                             aria-invalid={fieldState.invalid}
                             />
@@ -260,6 +264,7 @@ const handleGoogleSignUp = async () =>{
                             { ...field}
                             id={field.name}
                             type="email"
+                            required
                             placeholder="you@example.com"
                             aria-invalid={fieldState.invalid}
                             />
@@ -284,6 +289,7 @@ const handleGoogleSignUp = async () =>{
                             { ...field}
                             id={field.name}
                             type="password"
+                            required
                             placeholder="Enter you password"
                             aria-invalid={fieldState.invalid}
                             />
@@ -294,6 +300,9 @@ const handleGoogleSignUp = async () =>{
                         </Field>
                     )}
                     />
+                    {error && (
+                        <p className="text-red-600">{error}</p>
+                    )}
                     
                     <div className="flex gap-8 mt-5">
                     <Button

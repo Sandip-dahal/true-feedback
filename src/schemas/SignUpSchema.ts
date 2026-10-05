@@ -16,7 +16,7 @@ export const signUpValidation = z.object({
     .regex(/^[a-zA-Z0-9_ ]+$/, "name must not contain special character"),
 
     email:z
-    .email({message:"INvalid email address"})
+    .email({message:"Invalid email address"})
     .toLowerCase(),
 
     password:z

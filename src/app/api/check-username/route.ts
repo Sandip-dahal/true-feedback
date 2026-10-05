@@ -11,16 +11,6 @@ const UsernameQuerySchema = z.object({
 
 export async function GET(request:Request){
 
-    if(request.method !=="GET"){
-        return Response.json({
-            success:true,
-            message:"Only Get method is Allowed"
-        },
-    {
-        status:405
-    })
-    }
-
     try {
         const { searchParams} = new URL(request.url)
         const queryParam = {
@@ -29,7 +19,7 @@ export async function GET(request:Request){
 
         //validate with zod
         const result = UsernameQuerySchema.safeParse(queryParam)
-        console.log("Result:",result)
+        
 
         if(!result.success){
             const nameErrors = result.error.format().username?._errors || []
@@ -40,9 +30,13 @@ export async function GET(request:Request){
             {status:400}
         )
         }
+        
+
 
         const { username} = result.data
-        const existingVerifiedUSer = await db.
+        
+        console.log("Result:",result)
+        const existingVerifiedUser = await db.
         select({username:user.username})
         .from(user)
         .where(
@@ -52,15 +46,16 @@ export async function GET(request:Request){
             )
 
         )
+        
 
-        if(existingVerifiedUSer.length >0){
+        if(existingVerifiedUser.length > 0){
             return Response.json(
                 {
                 success:false,
                 message:"Username already taken"
                 },
                 {
-                    status:400
+                    status:200
                 }
             )
         }
