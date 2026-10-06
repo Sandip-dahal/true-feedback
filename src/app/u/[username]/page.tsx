@@ -217,7 +217,7 @@ const fetchAiMessage = async({topic,tone}: z.infer<typeof aiSuggestionSchema>) =
         disabled={isSuggestMessageLoading}
         >
           {isSuggestMessageLoading ? (
-            <Loader2 className='animate-spin'/>
+            <Loader2 className='mr-2 h-4 w-4 animate-spin'/>
           ):("Suggest Messages")}
         </Button>
         </div>
