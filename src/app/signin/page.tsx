@@ -28,7 +28,8 @@ const signinPage = () =>{
             email:"",
             password:"",
         },
-        mode:"onChange"
+        mode:"onChange",
+        reValidateMode:"onChange"
     })
 
     const onsubmit = async(data: z.infer<typeof signInValidation>) =>{
