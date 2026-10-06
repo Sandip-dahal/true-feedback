@@ -4,7 +4,7 @@ import type { auth } from "@/lib/auth";
 
 
 const authClient = createAuthClient({
-    baseURL:"https://true-feedback-zkb9.vercel.app",
+    baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL! ,
     plugins:[
         emailOTPClient(),
         inferAdditionalFields<typeof auth>(),
