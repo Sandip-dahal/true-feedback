@@ -27,7 +27,8 @@ const signinPage = () =>{
         defaultValues:{
             email:"",
             password:"",
-        }
+        },
+        mode:"onChange"
     })
 
     const onsubmit = async(data: z.infer<typeof signInValidation>) =>{
