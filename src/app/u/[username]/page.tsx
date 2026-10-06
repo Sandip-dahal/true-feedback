@@ -17,7 +17,7 @@ import  {aiSuggestionSchema}  from "@/schemas/AiSuggestionSchema"
 import { Separator } from '@/components/ui/separator'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Select } from '@/components/ui/select'
+
 
 
 function page() {
@@ -217,7 +217,7 @@ const fetchAiMessage = async({topic,tone}: z.infer<typeof aiSuggestionSchema>) =
         disabled={isSuggestMessageLoading}
         >
           {isSuggestMessageLoading ? (
-            <Loader2 />
+            <Loader2 className='animate-spin'/>
           ):("Suggest Messages")}
         </Button>
         </div>
